@@ -41,10 +41,32 @@ func main() {
 
 	flag.Parse()
 
+	optionsTheme, present := os.LookupEnv("THEME")
+	if options.Theme == "" && present {
+		options.Theme = optionsTheme
+	}
+
+	tempAddr, present := os.LookupEnv("ADDR")
+	if addr == ":1323" && present {
+		addr = tempAddr
+	}
+
 	options.Upstreams = flag.Args()
-	if len(options.Upstreams) == 0 {
-		flag.Usage()
-		return
+	imap, imapPresent := os.LookupEnv("IMAP")
+	smtp, smtpPresent := os.LookupEnv("SMTP")
+
+	if len(options.Upstreams) == 0 { 
+		if imapPresent && smtpPresent {
+			options.Upstreams = append(options.Upstreams, imap)
+			options.Upstreams = append(options.Upstreams, smtp)
+		} else {
+			flag.Usage()
+			return
+		}
+	}
+
+	if loginKey == "" {
+		loginKey, _ = os.LookupEnv("LOGINKEY")
 	}
 
 	if loginKey != "" {
